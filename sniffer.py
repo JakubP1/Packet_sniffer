@@ -73,7 +73,6 @@ class Sniffer(Thread):
 
         if packet.haslayer(TCP) or packet.haslayer(UDP):
             global packet_num
-            packet_num +=1
             credentials = ''
         if packet.haslayer(TCP):
             
@@ -82,6 +81,7 @@ class Sniffer(Thread):
                 protocol = "HTTP"
                 if packet.haslayer(HTTPRequest):
                     url = packet[HTTPRequest].Host.decode() + packet[HTTPRequest].Path.decode()
+                    packet_num +=1
                 #     # get the requester's IP Address
                 #     # get the request method
                     method = packet[HTTPRequest].Method.decode()
@@ -102,12 +102,13 @@ class Sniffer(Thread):
                     code = packet[HTTPResponse].Status_Code.decode()
                     reason_phrase = packet[HTTPResponse].Reason_Phrase.decode()
                     version = packet[HTTPResponse].Http_Version.decode()
-                    
+                    packet_num +=1
                     payload = code+" "+reason_phrase+" "+version 
                     self.gq.put([packet_num,timestmap,src_ip,dst_ip,protocol,packet_len,payload,credentials])
                     self.fq.put([packet_num,timestmap,src_ip,dst_ip,protocol,packet_len,payload,packet_num,credentials])
 
             if (dst_port == 21 or src_port == 21) and (packet.haslayer(Raw)):
+                packet_num +=1
                 protocol = "FTP"
                 payload= str(packet[Raw].load)
                 global username, password
@@ -127,6 +128,7 @@ class Sniffer(Thread):
 
         if packet.haslayer(UDP):    
             if packet.haslayer(DNS):
+                packet_num +=1
                 protocol = "DNS"
 
                 if packet.haslayer(DNSQR):
